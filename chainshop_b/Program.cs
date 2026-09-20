@@ -25,7 +25,7 @@ builder.Services.AddCors(options =>
 
 // untuk interface dan service
 builder.Services.AddScoped<AuthService>();
-builder.Services.AddScoped<ItemService>();
+builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<SellerService>();
 builder.Services.AddScoped<CategoryService>();
 //builder.Services.AddScoped<CartService>();
