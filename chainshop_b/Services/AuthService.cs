@@ -2,7 +2,6 @@
 using chainshop_b.Model;
 using chainshop_b.Model.Dto.Request;
 using chainshop_b.Model.Dto.Response;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace chainshop_b.Services
@@ -163,8 +162,8 @@ namespace chainshop_b.Services
                     idToken = user.Name,
                     walletAddress = user.WalletAddress
                 };
-            } 
-            catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 return new ResultMessageResponse
                 {

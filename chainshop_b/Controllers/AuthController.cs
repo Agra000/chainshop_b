@@ -1,7 +1,7 @@
-﻿using chainshop_b.Services;
-using Microsoft.AspNetCore.Mvc;
-using chainshop_b.Model.Dto.Request;
+﻿using chainshop_b.Model.Dto.Request;
 using chainshop_b.Model.Dto.Response;
+using chainshop_b.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace chainshop_b.Controllers
 {

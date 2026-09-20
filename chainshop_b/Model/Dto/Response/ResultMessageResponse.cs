@@ -6,6 +6,6 @@
         public string? Message { get; set; }
         public string? url { get; set; }
         public string? idToken { get; set; }
-        public string? walletAddress{ get; set; }
+        public string? walletAddress { get; set; }
     }
 }
