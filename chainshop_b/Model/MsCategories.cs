@@ -20,7 +20,18 @@ namespace chainshop_b.Model
         public string Name { get; set; } = null!;
 
         [Required]
-        [Column("sort_order")]
-        public int SortOrder { get; set; } = 0;
+        [Column("created_at")]
+        public DateTime CreatedAt { get; set; }
+
+        [Required]
+        [Column("updated_at")]
+        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        [Required]
+        [Column("updated_by")]
+        public Guid UpdatedBy { get; set; }
+
+        [ForeignKey(nameof(UpdatedBy))]
+        public MsUsers? MsUsers { get; set; }
     }
 }

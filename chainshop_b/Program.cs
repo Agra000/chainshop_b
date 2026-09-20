@@ -27,6 +27,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ItemService>();
 builder.Services.AddScoped<SellerService>();
+builder.Services.AddScoped<CategoryService>();
 //builder.Services.AddScoped<CartService>();
 
 //builder.Services.AddControllers();
