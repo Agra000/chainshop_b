@@ -24,19 +24,19 @@
 //            return await _context.MsUsers.AnyAsync(x => x.Id == userId);
 //        }
 
-//        public async Task<List<TrItem>> GetAllProducts()
+//        public async Task<List<TrProducts>> GetAllProducts()
 //        {
 //            try
 //            {
-//                return await _context.TrItem.Select(x => new TrItem
+//                return await _context.TrProducts.Select(x => new TrProducts
 //                {
 //                    Id = x.Id,
-//                    ItemName = x.ItemName,
+//                    Name = x.Name,
 //                    Brand = x.Brand,
 //                    Category = x.Category,
-//                    Price = x.Price,
-//                    StokQty = x.StokQty,
-//                    ImageUrl = x.ImageUrl,
+//                    PriceIdr = x.PriceIdr,
+//                    Stock = x.Stock,
+//                    img = x.ImageUrl,
 //                    Discount = x.Discount,
 //                    DateIn = x.DateIn,
 //                }).ToListAsync();
