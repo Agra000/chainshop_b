@@ -1,6 +1,6 @@
-using Microsoft.EntityFrameworkCore;
 using chainshop_b.Data;
 using chainshop_b.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,7 +25,8 @@ builder.Services.AddCors(options =>
 
 // untuk interface dan service
 builder.Services.AddScoped<AuthService>();
-//builder.Services.AddScoped<ItemService>();
+builder.Services.AddScoped<ItemService>();
+builder.Services.AddScoped<SellerService>();
 //builder.Services.AddScoped<CartService>();
 
 //builder.Services.AddControllers();
