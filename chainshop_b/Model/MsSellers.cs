@@ -50,7 +50,7 @@ namespace chainshop_b.Model
 
         [Required]
         [Column("created_at")]
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
 
         [Required]
         [Column("updated_at")]
