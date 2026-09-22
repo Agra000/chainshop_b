@@ -4,12 +4,13 @@
     {
         public Guid Id { get; set; }
         public string Name { get; set; } = null!;
-        public string CategoryName { get; set; } = null!;
-        public long PriceIdr { get; set; }
+        public string Category { get; set; } = null!;
+        public long Price { get; set; }
         public int Stock { get; set; }
+        public int Sold { get; set; }
         public string? Description { get; set; }
         public string Slug { get; set; } = null!;
         public decimal RatingAvg { get; set; }
-        public string SellerName { get; set; } = null!;
+        public string Seller { get; set; } = null!;
     }
 }

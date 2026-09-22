@@ -23,13 +23,14 @@ namespace chainshop_b.Services
                 {
                     Id = x.Id,
                     Name = x.Name,
-                    CategoryName = x.Category == null ? string.Empty : x.Category.Name,
-                    PriceIdr = x.PriceIdr,
+                    Category = x.Category == null ? string.Empty : x.Category.Name,
+                    Price = x.PriceIdr,
+                    Sold = x.SoldCount,
                     Stock = x.Stock,
                     Slug = x.Slug,
                     RatingAvg = x.RatingAvg,
                     Description = x.Description,
-                    SellerName = x.Seller == null ? string.Empty : x.Seller.ShopName,
+                    Seller = x.Seller == null ? string.Empty : x.Seller.ShopName,
                 }).ToListAsync();
             }
             catch (Exception ex)
