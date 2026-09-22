@@ -1,154 +1,121 @@
-﻿//using Microsoft.EntityFrameworkCore;
-//using chainshop_b.Data;
-//using chainshop_b.Model;
-//using chainshop_b.Model.Dto.Response;
+﻿using chainshop_b.Data;
+using chainshop_b.Model;
+using chainshop_b.Model.Dto.Response;
+using Microsoft.EntityFrameworkCore;
 
-//namespace chainshop_b.Services
-//{
-//    public class CartService
-//    {
-//        private readonly ApplicationDBContext _context;
+namespace chainshop_b.Services
+{
+    public class CartService
+    {
+        private readonly ApplicationDBContext _context;
 
-//        public CartService(ApplicationDBContext context)
-//        {
-//            _context = context;
-//        }
+        public CartService(ApplicationDBContext context)
+        {
+            _context = context;
+        }
 
-//        private async Task<bool> FindUserById(Guid userId)
-//        {
-//            if (userId == Guid.Empty)
-//            {
-//                return false;
-//            }
+        private async Task<bool> FindUserById(Guid userId)
+        {
+            if (userId == Guid.Empty)
+            {
+                return false;
+            }
 
-//            return await _context.MsUsers.AnyAsync(x => x.Id == userId);
-//        }
+            return await _context.MsUsers.AnyAsync(x => x.Id == userId);
+        }
 
-//        public async Task<List<TrProducts>> GetAllProducts()
-//        {
-//            try
-//            {
-//                return await _context.TrProducts.Select(x => new TrProducts
-//                {
-//                    Id = x.Id,
-//                    Name = x.Name,
-//                    Brand = x.Brand,
-//                    Category = x.Category,
-//                    PriceIdr = x.PriceIdr,
-//                    Stock = x.Stock,
-//                    img = x.ImageUrl,
-//                    Discount = x.Discount,
-//                    DateIn = x.DateIn,
-//                }).ToListAsync();
-//            }
-//            catch (Exception ex)
-//            {
-//                return new List<TrItem>();
-//            }
-//        }
+        public async Task<List<GetCartResponse>> GetAllCarts()
+        {
+            try
+            {
+                return await _context.TrCartItems.Select(x => new GetCartResponse
+                {
+                    Id = x.Id,
+                    userId = x.UserId,
+                    productId = x.ProductId,
+                    qty = x.Quantity,
+                    price = x.Product == null ? 0 : x.Product.PriceIdr,
+                    slug = x.Product == null ? "" : x.Product.Slug
+                }).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return new List<GetCartResponse>();
+            }
+        }
 
-//        public async Task<ResultMessageResponse> UpsertToCart(Guid userId, Guid trItemId)
-//        {
-//            try
-//            {
-//                if (!await FindUserById(userId))
-//                {
-//                    return new ResultMessageResponse
-//                    {
-//                        Status = false,
-//                        Message = "User not found"
-//                    };
-//                }
+        public async Task<ResultMessageResponse> UpsertToCart(Guid userId, Guid productId)
+        {
+            try
+            {
+                if (!await FindUserById(userId))
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "User not found"
+                    };
+                }
 
-//                var stockAvailable = await _context.TrItem.Where(x => x.Id == trItemId).FirstOrDefaultAsync();
-//                if (stockAvailable != null)
-//                {
-//                    if (stockAvailable.StokQty < 1)
-//                    {
-//                        return new ResultMessageResponse
-//                        {
-//                            Status = false,
-//                            Message = "Insufficient stock available"
-//                        };
-//                    }
-//                }
-//                else
-//                {
-//                    return new ResultMessageResponse
-//                    {
-//                        Status = false,
-//                        Message = "Item not found"
-//                    };
-//                }
+                var stockAvailable = await _context.TrProducts.Where(x => x.Id == productId).FirstOrDefaultAsync();
+                if (stockAvailable != null)
+                {
+                    if (stockAvailable.Stock < 1)
+                    {
+                        return new ResultMessageResponse
+                        {
+                            Status = false,
+                            Message = "Insufficient stock"
+                        };
+                    }
+                }
+                else
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "Item not found"
+                    };
+                }
 
-//                Guid cartId = await _context.TrCart.Where(x => x.UserId == userId).Select(x => x.Id).FirstOrDefaultAsync();
-//                if (cartId == Guid.Empty)
-//                {
-//                    Guid newCartId = Guid.NewGuid();
+                var isAlreadyInCart = await _context.TrCartItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == productId && x.Quantity > 0);
+                if (isAlreadyInCart != null)
+                {
+                    isAlreadyInCart.Quantity += 1;
+                    isAlreadyInCart.UpdatedAt = DateTime.UtcNow;
+                    isAlreadyInCart.IsSelected = true;
+                }
+                else
+                {
+                    var newCartItem = new TrCartItems
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = userId,
+                        ProductId = productId,
+                        Quantity = 1,
+                        IsSelected = true,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _context.TrCartItems.Add(newCartItem);
+                }
 
-//                    var newCart = new TrCart
-//                    {
-//                        DateIn = DateTime.Now,
-//                        UserIn = userId,
-//                        Id = newCartId,
-//                        UserId = userId
-//                    };
-//                    _context.TrCart.Add(newCart);
+                await _context.SaveChangesAsync();
 
-//                    var newCartItem = new TrCartItems
-//                    {
-//                        DateIn = DateTime.Now,
-//                        UserIn = userId,
-//                        Id = Guid.NewGuid(),
-//                        CartId = newCartId,
-//                        TrItemId = trItemId,
-//                        Quantity = 1,
-//                        PriceAtAdd = stockAvailable.Price
-//                    };
-//                    _context.TrCartItem.Add(newCartItem);
-//                }
-//                else
-//                {
-//                    var isAlreadyInCart = await _context.TrCartItem.FirstOrDefaultAsync(x => x.CartId == cartId && x.TrItemId == trItemId && x.Quantity > 0);
-
-//                    if (isAlreadyInCart != null)
-//                    {
-//                        isAlreadyInCart.Quantity += 1;
-//                        isAlreadyInCart.DateUp = DateTime.Now;
-//                        isAlreadyInCart.UserUp = userId;
-//                        isAlreadyInCart.PriceAtAdd = stockAvailable.Price * isAlreadyInCart.Quantity;
-//                    }
-//                    else
-//                    {
-//                        var newCartItem = new TrCartItems
-//                        {
-//                            DateIn = DateTime.Now,
-//                            UserIn = userId,
-//                            Id = Guid.NewGuid(),
-//                            CartId = cartId,
-//                            TrItemId = trItemId,
-//                            Quantity = 1,
-//                            PriceAtAdd = stockAvailable.Price
-//                        };
-//                        _context.TrCartItem.Add(newCartItem);
-//                    }
-//                }
-//                await _context.SaveChangesAsync();
-
-//                return new ResultMessageResponse
-//                {
-//                    Status = true,
-//                    Message = "Item added to cart successfully"
-//                };
-//            }
-//            catch (Exception ex)
-//            {
-//                return new ResultMessageResponse
-//                {
-//                    Status = false,
-//                    Message = $"Server error occurred while adding item to cart"
-//                };
-//            }
-//        }
-//    }
-//}
+                return new ResultMessageResponse
+                {
+                    Status = true,
+                    Message = "Item added to cart successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResultMessageResponse
+                {
+                    Status = false,
+                    Message = $"Server error occurred while adding item to cart"
+                };
+            }
+        }
+    }
+}
