@@ -62,7 +62,6 @@ namespace chainshop_b.Services
                 {
                     Name = req.Name,
                     Slug = req.Slug,
-                    CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                     UpdatedBy = userId
                 };

@@ -55,14 +55,14 @@ namespace chainshop_b.Services
                 {
                     UserId = userId,
                     ShopName = req.ShopName,
-                    ShopSlug = req.ShopSlug,
+                    Image = req.Image,
                     ShopDescription = req.ShopDescription ?? string.Empty,
                     City = req.City ?? string.Empty,
                     PayoutWalletAddress = req.PayoutWalletAddress,
                     IsVerified = false,
                     RatingAvg = 0,
                     RatingCount = 0,
-                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
                 };
 
                 _context.MsSellers.Add(newSeller);

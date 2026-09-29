@@ -27,7 +27,7 @@ namespace chainshop_b.Services
                     Price = x.PriceIdr,
                     Sold = x.SoldCount,
                     Stock = x.Stock,
-                    Slug = x.Slug,
+                    Image = x.Image,
                     RatingAvg = x.RatingAvg,
                     Description = x.Description,
                     Seller = x.Seller == null ? string.Empty : x.Seller.ShopName,
@@ -94,8 +94,8 @@ namespace chainshop_b.Services
                         PriceIdr = req.PriceIdr,
                         Stock = req.Stock,
                         Description = req.Description ?? string.Empty,
-                        Slug = req.Slug,
-                        CreatedAt = DateTime.UtcNow,
+                        Image = req.Image,
+                        UpdatedAt = DateTime.UtcNow,
                     };
 
                     _context.TrProducts.Add(newItem);

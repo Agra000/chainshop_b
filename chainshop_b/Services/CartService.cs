@@ -35,7 +35,7 @@ namespace chainshop_b.Services
                     productId = x.ProductId,
                     qty = x.Quantity,
                     price = x.Product == null ? 0 : x.Product.PriceIdr,
-                    slug = x.Product == null ? "" : x.Product.Slug
+                    image = x.Product == null ? "" : x.Product.Image
                 }).ToListAsync();
             }
             catch (Exception ex)
@@ -94,8 +94,8 @@ namespace chainshop_b.Services
                         ProductId = productId,
                         Quantity = 1,
                         IsSelected = true,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
+                        UpdatedAt = DateTime.UtcNow,
+                        UpdatedBy = userId
                     };
                     _context.TrCartItems.Add(newCartItem);
                 }
