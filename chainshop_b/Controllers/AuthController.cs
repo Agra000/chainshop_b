@@ -35,8 +35,7 @@ namespace chainshop_b.Controllers
             {
                 status = res.Status,
                 message = res.Message,
-                idToken = res.idToken,
-                walletAddress = res.walletAddress
+                userId = res.userId,
             });
         }
 
@@ -50,6 +49,21 @@ namespace chainshop_b.Controllers
                 Status = res.Status,
                 Message = res.Message,
                 idToken = res.idToken
+            });
+        }
+
+        [HttpGet("get-user")]
+        public async Task<IActionResult> GetUserInfo([FromQuery] Guid userId)
+        {
+            var res = await _authService.GetUserInfo(userId);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message,
+                username = res.username,
+                storeId = res.storeId,
+                email = res.email,
+                walletAddress = res.walletAddress
             });
         }
     }

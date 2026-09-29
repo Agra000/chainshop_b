@@ -89,7 +89,7 @@ namespace chainshop_b.Services
                     Phone = req.Phone,
                     City = req.City,
                     AuthMethod = "Email",
-                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
                     LastLoginAt = DateTime.UtcNow,
                 };
 
@@ -112,13 +112,13 @@ namespace chainshop_b.Services
             }
         }
 
-        public async Task<ResultMessageResponse> WalletLogin(string walletID)
+        public async Task<JwtKwResponse> WalletLogin(string walletID)
         {
             try
             {
                 if (string.IsNullOrWhiteSpace(walletID))
                 {
-                    return new ResultMessageResponse
+                    return new JwtKwResponse
                     {
                         Status = false,
                         Message = "Wallet address tidak boleh kosong."
@@ -128,20 +128,18 @@ namespace chainshop_b.Services
                 // Normalkan address ke lowercase agar tidak ada isu perbedaan huruf kapital
                 string formattedAddress = walletID.ToLower();
 
-                // Cek apakah wallet address sudah ada di database
                 var user = await _context.MsUsers
                     .FirstOrDefaultAsync(u => u.WalletAddress != null && u.WalletAddress.ToLower() == formattedAddress);
 
-                // Jika belum terdaftar, buat data user baru
                 if (user == null)
                 {
                     user = new MsUsers
                     {
                         Id = Guid.NewGuid(),
                         WalletAddress = formattedAddress,
-                        AuthMethod = "wallet", // Sesuai check constraint di schema
-                        Name = "ChainShop User", // Default name dari schema[cite: 1]
-                        CreatedAt = DateTime.UtcNow,
+                        AuthMethod = "wallet",
+                        Name = "User",
+                        UpdatedAt = DateTime.UtcNow,
                         LastLoginAt = DateTime.UtcNow
                     };
 
@@ -149,23 +147,27 @@ namespace chainshop_b.Services
                 }
                 else
                 {
-                    // Jika sudah terdaftar, perbarui waktu login terakhir
                     user.LastLoginAt = DateTime.UtcNow;
                 }
 
                 await _context.SaveChangesAsync();
 
-                return new ResultMessageResponse
+                Guid storeId = await _context.MsSellers
+                    .Where(x => x.UserId == user.Id)
+                    .Select(x => x.Id)
+                    .FirstOrDefaultAsync();
+
+                return new JwtKwResponse
                 {
                     Status = true,
                     Message = "Berhasil otentikasi wallet",
-                    idToken = user.Name,
+                    userId = user.Id,
                     walletAddress = user.WalletAddress
                 };
             }
             catch (Exception ex)
             {
-                return new ResultMessageResponse
+                return new JwtKwResponse
                 {
                     Status = false,
                     Message = $"Server error occurred while processing wallet login"
@@ -224,7 +226,7 @@ namespace chainshop_b.Services
                 {
                     Status = true,
                     Message = "Login Successful",
-                    //idToken = token
+                    idToken = user.Id.ToString()
                 };
             }
             catch (Exception ex)
@@ -233,6 +235,56 @@ namespace chainshop_b.Services
                 {
                     Status = false,
                     Message = $"Server Error. Please Try Again !"
+                };
+            }
+        }
+
+        public async Task<JwtKwResponse> GetUserInfo(Guid userId)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    return new JwtKwResponse
+                    {
+                        Status = false,
+                        Message = "User Id is Empty"
+                    };
+                }
+
+                var user = await _context.MsUsers
+                    .FirstOrDefaultAsync(u => u.Id == userId);
+
+                if (user == null)
+                {
+                    return new JwtKwResponse
+                    {
+                        Status = false,
+                        Message = "User Not Found"
+                    };
+                }
+
+                Guid storeId = await _context.MsSellers
+                    .Where(x => x.UserId == user.Id)
+                    .Select(x => x.Id)
+                    .FirstOrDefaultAsync();
+
+                return new JwtKwResponse
+                {
+                    Status = true,
+                    Message = "User Data Collected !",
+                    username = user.Name,
+                    storeId = storeId == Guid.Empty ? "" : storeId.ToString(),
+                    email = user.Email == null ? "" : user.Email,
+                    walletAddress = user.WalletAddress
+                };
+            }
+            catch (Exception ex)
+            {
+                return new JwtKwResponse
+                {
+                    Status = false,
+                    Message = $"Server error occurred while processing wallet login"
                 };
             }
         }
