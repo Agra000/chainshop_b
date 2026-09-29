@@ -264,9 +264,8 @@ namespace chainshop_b.Services
                     };
                 }
 
-                Guid storeId = await _context.MsSellers
+                var store = await _context.MsSellers
                     .Where(x => x.UserId == user.Id)
-                    .Select(x => x.Id)
                     .FirstOrDefaultAsync();
 
                 return new JwtKwResponse
@@ -274,7 +273,8 @@ namespace chainshop_b.Services
                     Status = true,
                     Message = "User Data Collected !",
                     username = user.Name,
-                    storeId = storeId == Guid.Empty ? "" : storeId.ToString(),
+                    storeId = store == null ? "" : store.Id.ToString(),
+                    storeName = store == null ? "" : store.ShopName,
                     email = user.Email == null ? "" : user.Email,
                     walletAddress = user.WalletAddress
                 };

@@ -9,5 +9,6 @@
         public Guid? userId { get; set; }
         public string? walletAddress { get; set; }
         public string? storeId { get; set; }
+        public string? storeName { get; set; }
     }
 }

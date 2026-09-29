@@ -62,6 +62,7 @@ namespace chainshop_b.Controllers
                 message = res.Message,
                 username = res.username,
                 storeId = res.storeId,
+                storeName = res.storeName,
                 email = res.email,
                 walletAddress = res.walletAddress
             });
