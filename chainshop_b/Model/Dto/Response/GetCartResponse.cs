@@ -7,6 +7,6 @@
         public Guid productId { get; set; }
         public int qty { get; set; }
         public long price { get; set; }
-        public string slug { get; set; }
+        public string image { get; set; }
     }
 }

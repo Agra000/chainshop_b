@@ -4,12 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace chainshop_b.Model
 {
     [Table("trdrivers")]
-    public class TrDrivers
+    public class TrDrivers : BaseModel
     {
-        [Key]
-        [Column("id")]
-        public Guid Id { get; set; } = Guid.NewGuid();
-
         [Column("user_id")]
         public Guid? UserId { get; set; }
 
@@ -44,9 +40,5 @@ namespace chainshop_b.Model
         [Required]
         [Column("is_active")]
         public bool IsActive { get; set; } = true;
-
-        [Required]
-        [Column("created_at")]
-        public DateTime CreatedAt { get; set; }
     }
 }

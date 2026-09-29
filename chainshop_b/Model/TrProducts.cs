@@ -4,12 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace chainshop_b.Model
 {
     [Table("trproducts")]
-    public class TrProducts
+    public class TrProducts : BaseModel
     {
-        [Key]
-        [Column("id")]
-        public Guid Id { get; set; } = Guid.NewGuid();
-
         [Required]
         [Column("seller_id")]
         public Guid SellerId { get; set; }
@@ -30,8 +26,8 @@ namespace chainshop_b.Model
         public string Name { get; set; } = null!;
 
         [Required]
-        [Column("slug")]
-        public string Slug { get; set; } = null!;
+        [Column("image")]
+        public string Image { get; set; } = null!;
 
         [Column("description")]
         public string? Description { get; set; }
@@ -59,13 +55,5 @@ namespace chainshop_b.Model
         [MaxLength(50)]
         [Column("status")]
         public string Status { get; set; } = "active";
-
-        [Required]
-        [Column("created_at")]
-        public DateTime CreatedAt { get; set; }
-
-        [Required]
-        [Column("updated_at")]
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
 }

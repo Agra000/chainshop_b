@@ -4,12 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace chainshop_b.Model
 {
     [Table("msaddresses")]
-    public class MsAddresses
+    public class MsAddresses : BaseModel
     {
-        [Key]
-        [Column("id")]
-        public Guid Id { get; set; } = Guid.NewGuid();
-
         [Required]
         [Column("user_id")]
         public Guid UserId { get; set; }
@@ -53,9 +49,5 @@ namespace chainshop_b.Model
         [Required]
         [Column("is_default")]
         public bool IsDefault { get; set; } = false;
-
-        [Required]
-        [Column("created_at")]
-        public DateTime CreatedAt { get; set; }
     }
 }

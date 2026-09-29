@@ -4,12 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace chainshop_b.Model
 {
     [Table("ltproductspecifications")]
-    public class LtProductSpecifications
+    public class LtProductSpecifications : BaseModel
     {
-        [Key]
-        [Column("id")]
-        public Guid Id { get; set; } = Guid.NewGuid();
-
         [Required]
         [Column("product_id")]
         public Guid ProductId { get; set; }

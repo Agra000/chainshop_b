@@ -4,12 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace chainshop_b.Model
 {
     [Table("msusers")]
-    public class MsUsers
+    public class MsUsers : BaseModel
     {
-        [Key]
-        [Column("id")]
-        public Guid Id { get; set; } = Guid.NewGuid();
-
         [Column("wallet_address")]
         public string? WalletAddress { get; set; }
 
@@ -39,12 +35,5 @@ namespace chainshop_b.Model
 
         [Column("last_login_at")]
         public DateTime? LastLoginAt { get; set; }
-
-        [Required]
-        [Column("created_at")]
-        public DateTime CreatedAt { get; set; }
-
-        [Column("updated_at")]
-        public DateTime? UpdatedAt { get; set; }
     }
 }

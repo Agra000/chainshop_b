@@ -7,6 +7,6 @@
         public long PriceIdr { get; set; }
         public int Stock { get; set; }
         public string? Description { get; set; }
-        public string Slug { get; set; }
+        public string Image { get; set; }
     }
 }

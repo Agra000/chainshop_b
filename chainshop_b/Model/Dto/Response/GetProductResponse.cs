@@ -9,7 +9,7 @@
         public int Stock { get; set; }
         public int Sold { get; set; }
         public string? Description { get; set; }
-        public string Slug { get; set; } = null!;
+        public string Image { get; set; } = null!;
         public decimal RatingAvg { get; set; }
         public string Seller { get; set; } = null!;
     }
