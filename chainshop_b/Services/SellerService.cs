@@ -83,5 +83,50 @@ namespace chainshop_b.Services
                 };
             }
         }
+
+        public async Task<GetSellerInfoResponse> GetSellerInfo(Guid sellerId)
+        {
+            try
+            {
+                var seller = await _context.MsSellers.FirstOrDefaultAsync(x => x.Id == sellerId);
+                if (seller == null)
+                {
+                    return new GetSellerInfoResponse
+                    {
+                        Status = false,
+                        Message = "Seller not found"
+                    };
+                }
+
+                var user = await _context.MsUsers.FirstOrDefaultAsync(x => x.Id == seller.UserId);
+                if (user == null)
+                {
+                    return new GetSellerInfoResponse
+                    {
+                        Status = false,
+                        Message = "User not found"
+                    };
+                }
+
+                return new GetSellerInfoResponse
+                {
+                    Status = true,
+                    shopName = seller.ShopName,
+                    shopDescription = seller.ShopDescription,
+                    city = seller.City,
+                    payoutWallet = seller.PayoutWalletAddress,
+                    registeredAt = seller.UpdatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
+                    shopImage = seller.Image
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GetSellerInfoResponse
+                {
+                    Status = false,
+                    Message = $"Server error occurred while adding seller"
+                };
+            }
+        }
     }
 }

@@ -27,6 +27,22 @@ namespace chainshop_b.Controllers
             });
         }
 
+        [HttpPost("get-info")]
+        public async Task<IActionResult> GetSellerInfo([FromQuery] Guid sellerId)
+        {
+            var res = await _sellerService.GetSellerInfo(sellerId);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message,
+                shopName = res.shopName,
+                shopDescription = res.shopDescription,
+                city = res.city,
+                payoutWallet = res.payoutWallet,
+                registeredAt = res.registeredAt,
+                shopImage = res.shopImage
+            });
+        }
         //[HttpGet("get-edit")]
         //public async Task<IActionResult> GetEdit([FromQuery] Guid taskId)
         //{
