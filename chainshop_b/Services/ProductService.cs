@@ -118,5 +118,155 @@ namespace chainshop_b.Services
                 };
             }
         }
+
+        public async Task<List<GetProductResponse>> SearchProducts(string? keyword, Guid? categoryId, string? categorySlug, long? minPrice, long? maxPrice, string? sortBy)
+        {
+            try
+            {
+                var query = _context.TrProducts.Where(x => x.Status == "active");
+
+                if (!string.IsNullOrWhiteSpace(keyword))
+                {
+                    var key = keyword.Trim().ToLower();
+                    query = query.Where(x => x.Name.ToLower().Contains(key) ||
+                                             (x.Description != null && x.Description.ToLower().Contains(key)));
+                }
+
+                if (categoryId.HasValue && categoryId.Value != Guid.Empty)
+                {
+                    query = query.Where(x => x.CategoryId == categoryId.Value);
+                }
+
+                if (!string.IsNullOrWhiteSpace(categorySlug))
+                {
+                    query = query.Where(x => x.Category != null && x.Category.Slug == categorySlug);
+                }
+
+                if (minPrice.HasValue)
+                {
+                    query = query.Where(x => x.PriceIdr >= minPrice.Value);
+                }
+
+                if (maxPrice.HasValue)
+                {
+                    query = query.Where(x => x.PriceIdr <= maxPrice.Value);
+                }
+
+                query = sortBy switch
+                {
+                    "price_asc" => query.OrderBy(x => x.PriceIdr),
+                    "price_desc" => query.OrderByDescending(x => x.PriceIdr),
+                    "best_seller" => query.OrderByDescending(x => x.SoldCount),
+                    "rating" => query.OrderByDescending(x => x.RatingAvg),
+                    _ => query.OrderByDescending(x => x.UpdatedAt)
+                };
+
+                return await query.Select(x => new GetProductResponse
+                {
+                    Id = x.Id,
+                    Name = x.Name,
+                    Category = x.Category == null ? string.Empty : x.Category.Name,
+                    Price = x.PriceIdr,
+                    Sold = x.SoldCount,
+                    Stock = x.Stock,
+                    Image = x.Image,
+                    RatingAvg = x.RatingAvg,
+                    Description = x.Description,
+                    Seller = x.Seller == null ? string.Empty : x.Seller.ShopName,
+                }).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return new List<GetProductResponse>();
+            }
+        }
+
+        public async Task<GetProductDetailResponse> GetProductDetail(Guid productId)
+        {
+            try
+            {
+                var product = await _context.TrProducts
+                    .Include(x => x.Category)
+                    .Include(x => x.Seller)
+                    .FirstOrDefaultAsync(x => x.Id == productId);
+
+                if (product == null)
+                {
+                    return new GetProductDetailResponse
+                    {
+                        Status = false,
+                        Message = "Product not found"
+                    };
+                }
+
+                var specs = await _context.LtProductSpecifications
+                    .Where(x => x.ProductId == productId)
+                    .OrderBy(x => x.SortOrder)
+                    .Select(x => new GetProductSpecResponse
+                    {
+                        Key = x.SpecKey,
+                        Value = x.SpecValue
+                    }).ToListAsync();
+
+                return new GetProductDetailResponse
+                {
+                    Status = true,
+                    Message = "Success",
+                    product = new GetProductResponse
+                    {
+                        Id = product.Id,
+                        Name = product.Name,
+                        Category = product.Category == null ? string.Empty : product.Category.Name,
+                        Price = product.PriceIdr,
+                        Sold = product.SoldCount,
+                        Stock = product.Stock,
+                        Image = product.Image,
+                        RatingAvg = product.RatingAvg,
+                        Description = product.Description,
+                        Seller = product.Seller == null ? string.Empty : product.Seller.ShopName,
+                    },
+                    sellerId = product.SellerId,
+                    sellerCity = product.Seller?.City,
+                    sellerRating = product.Seller == null ? 0 : product.Seller.RatingAvg,
+                    ratingCount = product.RatingCount,
+                    specifications = specs
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GetProductDetailResponse
+                {
+                    Status = false,
+                    Message = $"Server error occurred while getting product"
+                };
+            }
+        }
+
+        public async Task<List<GetProductResponse>> GetProductsBySeller(Guid sellerId)
+        {
+            try
+            {
+                return await _context.TrProducts
+                    .Where(x => x.SellerId == sellerId)
+                    .OrderByDescending(x => x.UpdatedAt)
+                    .Select(x => new GetProductResponse
+                    {
+                        Id = x.Id,
+                        Name = x.Name,
+                        Category = x.Category == null ? string.Empty : x.Category.Name,
+                        Price = x.PriceIdr,
+                        Sold = x.SoldCount,
+                        Stock = x.Stock,
+                        Image = x.Image,
+                        RatingAvg = x.RatingAvg,
+                        Description = x.Description,
+                        Seller = x.Seller == null ? string.Empty : x.Seller.ShopName,
+                    }).ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                return new List<GetProductResponse>();
+            }
+        }
     }
 }

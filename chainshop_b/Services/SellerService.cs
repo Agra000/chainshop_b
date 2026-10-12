@@ -128,5 +128,70 @@ namespace chainshop_b.Services
                 };
             }
         }
+
+        public async Task<GetSellerDashboardResponse> GetSellerDashboard(Guid sellerId)
+        {
+            try
+            {
+                var seller = await _context.MsSellers.FirstOrDefaultAsync(x => x.Id == sellerId);
+                if (seller == null)
+                {
+                    return new GetSellerDashboardResponse
+                    {
+                        Status = false,
+                        Message = "Seller not found"
+                    };
+                }
+
+                var orders = _context.TrOrders.Where(x => x.SellerId == sellerId && x.Status != "pending_payment");
+                var heldStatus = new[] { "paid", "processing", "shipped", "in_transit", "delivered" };
+                var shippingStatus = new[] { "shipped", "in_transit", "delivered" };
+
+                var products = await _context.TrProducts
+                    .Where(x => x.SellerId == sellerId)
+                    .OrderByDescending(x => x.UpdatedAt)
+                    .Select(x => new GetProductResponse
+                    {
+                        Id = x.Id,
+                        Name = x.Name,
+                        Category = x.Category == null ? string.Empty : x.Category.Name,
+                        Price = x.PriceIdr,
+                        Sold = x.SoldCount,
+                        Stock = x.Stock,
+                        Image = x.Image,
+                        RatingAvg = x.RatingAvg,
+                        Description = x.Description,
+                        Seller = seller.ShopName,
+                    }).ToListAsync();
+
+                return new GetSellerDashboardResponse
+                {
+                    Status = true,
+                    Message = "Success",
+                    shopName = seller.ShopName,
+                    ratingAvg = seller.RatingAvg,
+                    ratingCount = seller.RatingCount,
+                    totalProducts = products.Count,
+                    totalSold = products.Sum(x => x.Sold),
+                    totalOrders = await orders.CountAsync(),
+                    newOrders = await orders.CountAsync(x => x.Status == "paid" || x.Status == "processing"),
+                    onShippingOrders = await orders.CountAsync(x => shippingStatus.Contains(x.Status)),
+                    completedOrders = await orders.CountAsync(x => x.Status == "completed"),
+                    escrowHeldIdr = await orders.Where(x => heldStatus.Contains(x.Status)).SumAsync(x => x.TotalIdr),
+                    totalRevenueIdr = await _context.TrEscrowTransactions
+                        .Where(x => x.TxType == "release" && x.Status == "success" && x.Order != null && x.Order.SellerId == sellerId)
+                        .SumAsync(x => x.AmountIdr),
+                    products = products
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GetSellerDashboardResponse
+                {
+                    Status = false,
+                    Message = $"Server error occurred while getting seller dashboard"
+                };
+            }
+        }
     }
 }

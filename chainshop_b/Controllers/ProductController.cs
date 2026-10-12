@@ -38,6 +38,46 @@ namespace chainshop_b.Controllers
             });
         }
 
+        [HttpGet("search")]
+        public async Task<IActionResult> SearchProducts([FromQuery] string? keyword, [FromQuery] Guid? categoryId, [FromQuery] string? categorySlug,
+            [FromQuery] long? minPrice, [FromQuery] long? maxPrice, [FromQuery] string? sortBy)
+        {
+            var res = await _productService.SearchProducts(keyword, categoryId, categorySlug, minPrice, maxPrice, sortBy);
+            return Ok(new
+            {
+                data = res,
+                message = "Success"
+            });
+        }
+
+        [HttpGet("detail")]
+        public async Task<IActionResult> GetProductDetail([FromQuery] Guid productId)
+        {
+            var res = await _productService.GetProductDetail(productId);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message,
+                data = res.product,
+                sellerId = res.sellerId,
+                sellerCity = res.sellerCity,
+                sellerRating = res.sellerRating,
+                ratingCount = res.ratingCount,
+                specifications = res.specifications
+            });
+        }
+
+        [HttpGet("get-by-seller")]
+        public async Task<IActionResult> GetProductsBySeller([FromQuery] Guid sellerId)
+        {
+            var res = await _productService.GetProductsBySeller(sellerId);
+            return Ok(new
+            {
+                data = res,
+                message = "Success"
+            });
+        }
+
         //[HttpGet("get-edit")]
         //public async Task<IActionResult> GetEdit([FromQuery] Guid taskId)
         //{

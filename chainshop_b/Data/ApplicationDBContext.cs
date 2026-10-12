@@ -18,5 +18,10 @@ namespace chainshop_b.Data
         public DbSet<TrCartItems> TrCartItems { get; set; }
         public DbSet<MsCourierCompanies> MsCourierCompanies { get; set; }
         public DbSet<TrDrivers> TrDrivers { get; set; }
+        public DbSet<TrOrders> TrOrders { get; set; }
+        public DbSet<TrOrderItems> TrOrderItems { get; set; }
+        public DbSet<TrEscrowTransactions> TrEscrowTransactions { get; set; }
+        public DbSet<TrOrderTrackings> TrOrderTrackings { get; set; }
+        public DbSet<TrProductReviews> TrProductReviews { get; set; }
     }
 }

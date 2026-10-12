@@ -43,6 +43,29 @@ namespace chainshop_b.Controllers
                 shopImage = res.shopImage
             });
         }
+
+        [HttpGet("dashboard")]
+        public async Task<IActionResult> GetSellerDashboard([FromQuery] Guid sellerId)
+        {
+            var res = await _sellerService.GetSellerDashboard(sellerId);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message,
+                shopName = res.shopName,
+                ratingAvg = res.ratingAvg,
+                ratingCount = res.ratingCount,
+                totalProducts = res.totalProducts,
+                totalSold = res.totalSold,
+                totalOrders = res.totalOrders,
+                newOrders = res.newOrders,
+                onShippingOrders = res.onShippingOrders,
+                completedOrders = res.completedOrders,
+                escrowHeldIdr = res.escrowHeldIdr,
+                totalRevenueIdr = res.totalRevenueIdr,
+                products = res.products
+            });
+        }
         //[HttpGet("get-edit")]
         //public async Task<IActionResult> GetEdit([FromQuery] Guid taskId)
         //{
