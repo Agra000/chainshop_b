@@ -134,15 +134,6 @@ namespace chainshop_b.Services
                     };
                 }
 
-                if (string.IsNullOrWhiteSpace(user.WalletAddress))
-                {
-                    return new CheckoutResponse
-                    {
-                        Status = false,
-                        Message = "Please connect your wallet before making a payment"
-                    };
-                }
-
                 var address = await _context.MsAddresses.FirstOrDefaultAsync(x => x.Id == req.AddressId && x.UserId == userId);
                 if (address == null)
                 {

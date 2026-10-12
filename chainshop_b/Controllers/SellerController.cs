@@ -1,12 +1,13 @@
 ﻿using chainshop_b.Model.Dto.Request;
 using chainshop_b.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace chainshop_b.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class SellerController : ControllerBase
     {
         private readonly SellerService _sellerService;
@@ -27,6 +28,7 @@ namespace chainshop_b.Controllers
             });
         }
 
+        [AllowAnonymous]
         [HttpPost("get-info")]
         public async Task<IActionResult> GetSellerInfo([FromQuery] Guid sellerId)
         {
@@ -66,6 +68,17 @@ namespace chainshop_b.Controllers
                 products = res.products
             });
         }
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteStore([FromQuery] Guid sellerId)
+        {
+            var res = await _sellerService.DeleteStore(sellerId);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message
+            });
+        }
+
         //[HttpGet("get-edit")]
         //public async Task<IActionResult> GetEdit([FromQuery] Guid taskId)
         //{

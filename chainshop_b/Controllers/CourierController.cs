@@ -1,11 +1,12 @@
 ﻿using chainshop_b.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace chainshop_b.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class CourierController : ControllerBase
     {
         private readonly CourierService _courierService;

@@ -1,12 +1,13 @@
 ﻿using chainshop_b.Model.Dto.Request;
 using chainshop_b.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace chainshop_b.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class CategoryController : ControllerBase
     {
         private readonly CategoryService _categoryService;
@@ -16,6 +17,7 @@ namespace chainshop_b.Controllers
             _categoryService = categoryService;
         }
 
+        [AllowAnonymous]
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllCategories()
         {

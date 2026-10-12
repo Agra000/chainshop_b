@@ -3,6 +3,10 @@ using chainshop_b.Model;
 using chainshop_b.Model.Dto.Request;
 using chainshop_b.Model.Dto.Response;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace chainshop_b.Services
 {
@@ -22,30 +26,42 @@ namespace chainshop_b.Services
             return await _context.MsUsers.FirstOrDefaultAsync(x => x.Email == email);
         }
 
-        //private string GenerateJwtToken(MsUsers user)
-        //{
-        //    var claims = new List<Claim>
-        //    {
-        //        new Claim("iduser", user.Id.ToString()),
-        //        new Claim(ClaimTypes.Email, user.Email),
-        //        new Claim("fullname", user.FullName != null ? user.FullName.Split(' ')[0] : "user"),
-        //        new Claim("role", user.Role ?? "user"),
-        //        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-        //    };
+        private (string token, DateTime expiresAt) GenerateJwtToken(MsUsers user)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim("iduser", user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim("fullname", user.Name),
+                new Claim("auth_method", user.AuthMethod),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
 
-        //    var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
-        //    var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            if (!string.IsNullOrWhiteSpace(user.Email))
+            {
+                claims.Add(new Claim(JwtRegisteredClaimNames.Email, user.Email));
+            }
 
-        //    var token = new JwtSecurityToken(
-        //        issuer: _config["Jwt:Issuer"],
-        //        audience: _config["Jwt:Audience"],
-        //        claims: claims,
-        //        expires: DateTime.Now.AddHours(3),
-        //        signingCredentials: creds
-        //    );
+            if (!string.IsNullOrWhiteSpace(user.WalletAddress))
+            {
+                claims.Add(new Claim("wallet", user.WalletAddress));
+            }
 
-        //    return new JwtSecurityTokenHandler().WriteToken(token);
-        //}
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]!));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var expireHours = int.TryParse(_config["Jwt:ExpireHours"], out var hours) ? hours : 24;
+            var expiresAt = DateTime.UtcNow.AddHours(expireHours);
+
+            var token = new JwtSecurityToken(
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
+                claims: claims,
+                expires: expiresAt,
+                signingCredentials: creds
+            );
+
+            return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
+        }
 
         public async Task<ResultMessageResponse> Register(RegisterRequest req)
         {
@@ -152,17 +168,16 @@ namespace chainshop_b.Services
 
                 await _context.SaveChangesAsync();
 
-                Guid storeId = await _context.MsSellers
-                    .Where(x => x.UserId == user.Id)
-                    .Select(x => x.Id)
-                    .FirstOrDefaultAsync();
+                var jwt = GenerateJwtToken(user);
 
                 return new JwtKwResponse
                 {
                     Status = true,
                     Message = "Berhasil otentikasi wallet",
                     userId = user.Id,
-                    walletAddress = user.WalletAddress
+                    walletAddress = user.WalletAddress,
+                    token = jwt.token,
+                    expiresAt = jwt.expiresAt.ToString("o")
                 };
             }
             catch (Exception ex)
@@ -175,14 +190,14 @@ namespace chainshop_b.Services
             }
         }
 
-        public async Task<ResultMessageResponse> Login(LoginRequest req)
+        public async Task<JwtKwResponse> Login(LoginRequest req)
         {
             try
             {
                 //var googleResult = await checkReCaptcha(r.tokenCaptcha);
                 //if (googleResult == null || !googleResult.Success)
                 //{
-                //    return new ResultMessageResponse
+                //    return new JwtKwResponse
                 //    {
                 //        Status = false,
                 //        Message = "Captcha is not valid or already expired !."
@@ -192,7 +207,7 @@ namespace chainshop_b.Services
                 var user = await FindUserEmail(req.email);
                 if (user == null)
                 {
-                    return new ResultMessageResponse
+                    return new JwtKwResponse
                     {
                         Status = false,
                         Message = "Email is not registered yet !!"
@@ -202,7 +217,7 @@ namespace chainshop_b.Services
                 //bool isPwValid = BCrypt.Net.BCrypt.Verify(req.password, user.Password);
                 //if (!isPwValid)
                 //{
-                //    return new ResultMessageResponse
+                //    return new JwtKwResponse
                 //    {
                 //        Status = false,
                 //        Message = "Wrong Password !!"
@@ -220,18 +235,25 @@ namespace chainshop_b.Services
                 //};
                 //Response.Cookies.Append("token", tokenString, cookieOptions);
 
-                //var token = GenerateJwtToken(user);
+                user.LastLoginAt = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
 
-                return new ResultMessageResponse
+                var jwt = GenerateJwtToken(user);
+
+                return new JwtKwResponse
                 {
                     Status = true,
                     Message = "Login Successful",
-                    idToken = user.Id.ToString()
+                    userId = user.Id,
+                    email = user.Email,
+                    walletAddress = user.WalletAddress,
+                    token = jwt.token,
+                    expiresAt = jwt.expiresAt.ToString("o")
                 };
             }
             catch (Exception ex)
             {
-                return new ResultMessageResponse
+                return new JwtKwResponse
                 {
                     Status = false,
                     Message = $"Server Error. Please Try Again !"
@@ -276,7 +298,11 @@ namespace chainshop_b.Services
                     storeId = store == null ? "" : store.Id.ToString(),
                     storeName = store == null ? "" : store.ShopName,
                     email = user.Email == null ? "" : user.Email,
-                    walletAddress = user.WalletAddress
+                    walletAddress = user.WalletAddress,
+                    phone = user.Phone,
+                    city = user.City,
+                    authMethod = user.AuthMethod,
+                    lastLoginAt = user.LastLoginAt == null ? null : user.LastLoginAt.Value.ToString("o")
                 };
             }
             catch (Exception ex)
@@ -285,6 +311,58 @@ namespace chainshop_b.Services
                 {
                     Status = false,
                     Message = $"Server error occurred while processing wallet login"
+                };
+            }
+        }
+    
+        public async Task<ResultMessageResponse> UpdateProfile(Guid userId, RegisterRequest req)
+        {
+            try
+            {
+                var user = await _context.MsUsers.FirstOrDefaultAsync(x => x.Id == userId);
+                if (user == null)
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "User Not Found"
+                    };
+                }
+
+                if (!string.IsNullOrWhiteSpace(req.Email) && req.Email != user.Email)
+                {
+                    var emailUsed = await _context.MsUsers.AnyAsync(x => x.Email == req.Email && x.Id != userId);
+                    if (emailUsed)
+                    {
+                        return new ResultMessageResponse
+                        {
+                            Status = false,
+                            Message = "Email is already used by another account"
+                        };
+                    }
+                    user.Email = req.Email;
+                }
+
+                user.Name = string.IsNullOrWhiteSpace(req.Name) ? user.Name : req.Name.Trim();
+                user.Phone = req.Phone;
+                user.City = req.City;
+                user.UpdatedAt = DateTime.UtcNow;
+                user.UpdatedBy = userId;
+
+                await _context.SaveChangesAsync();
+
+                return new ResultMessageResponse
+                {
+                    Status = true,
+                    Message = "Profile updated successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResultMessageResponse
+                {
+                    Status = false,
+                    Message = $"Server error occurred while updating profile"
                 };
             }
         }

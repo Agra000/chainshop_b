@@ -1,12 +1,13 @@
 ﻿using chainshop_b.Model.Dto.Request;
 using chainshop_b.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace chainshop_b.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class OrderController : ControllerBase
     {
         private readonly OrderService _orderService;
@@ -161,6 +162,7 @@ namespace chainshop_b.Controllers
 
         // ===== Public =====
 
+        [AllowAnonymous]
         [HttpGet("verify-invoice")]
         public async Task<IActionResult> VerifyInvoice([FromQuery] Guid orderId, [FromQuery] string? invoiceHash)
         {

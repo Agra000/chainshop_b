@@ -193,5 +193,54 @@ namespace chainshop_b.Services
                 };
             }
         }
+
+        public async Task<ResultMessageResponse> DeleteStore(Guid sellerId)
+        {
+            try
+            {
+                var seller = await _context.MsSellers.FirstOrDefaultAsync(x => x.Id == sellerId);
+                if (seller == null)
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "Seller not found"
+                    };
+                }
+
+                // toko yang sudah punya order tidak bisa dihapus, karena order & escrow tetap harus tercatat
+                var hasOrder = await _context.TrOrders.AnyAsync(x => x.SellerId == sellerId);
+                if (hasOrder)
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "Store with order history cannot be deleted"
+                    };
+                }
+
+                var productIds = await _context.TrProducts.Where(x => x.SellerId == sellerId).Select(x => x.Id).ToListAsync();
+                _context.TrCartItems.RemoveRange(_context.TrCartItems.Where(x => productIds.Contains(x.ProductId)));
+                _context.LtProductSpecifications.RemoveRange(_context.LtProductSpecifications.Where(x => productIds.Contains(x.ProductId)));
+                _context.TrProducts.RemoveRange(_context.TrProducts.Where(x => x.SellerId == sellerId));
+                _context.MsSellers.Remove(seller);
+
+                await _context.SaveChangesAsync();
+
+                return new ResultMessageResponse
+                {
+                    Status = true,
+                    Message = "Store deleted successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResultMessageResponse
+                {
+                    Status = false,
+                    Message = $"Server error occurred while deleting store"
+                };
+            }
+        }
     }
 }

@@ -1,12 +1,13 @@
 ﻿using chainshop_b.Model.Dto.Request;
 using chainshop_b.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace chainshop_b.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class ProductController : ControllerBase
     {
         private readonly ProductService _productService;
@@ -16,6 +17,7 @@ namespace chainshop_b.Controllers
             _productService = productService;
         }
 
+        [AllowAnonymous]
         [HttpGet("get-all")]
         public async Task<IActionResult> GetAllProducts()
         {
@@ -38,6 +40,7 @@ namespace chainshop_b.Controllers
             });
         }
 
+        [AllowAnonymous]
         [HttpGet("search")]
         public async Task<IActionResult> SearchProducts([FromQuery] string? keyword, [FromQuery] Guid? categoryId, [FromQuery] string? categorySlug,
             [FromQuery] long? minPrice, [FromQuery] long? maxPrice, [FromQuery] string? sortBy)
@@ -50,6 +53,7 @@ namespace chainshop_b.Controllers
             });
         }
 
+        [AllowAnonymous]
         [HttpGet("detail")]
         public async Task<IActionResult> GetProductDetail([FromQuery] Guid productId)
         {
@@ -67,6 +71,7 @@ namespace chainshop_b.Controllers
             });
         }
 
+        [AllowAnonymous]
         [HttpGet("get-by-seller")]
         public async Task<IActionResult> GetProductsBySeller([FromQuery] Guid sellerId)
         {
@@ -75,6 +80,17 @@ namespace chainshop_b.Controllers
             {
                 data = res,
                 message = "Success"
+            });
+        }
+
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateProduct([FromQuery] Guid sellerId, [FromQuery] Guid productId, [FromBody] FormItemsRequest req)
+        {
+            var res = await _productService.UpdateProduct(sellerId, productId, req);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message
             });
         }
 

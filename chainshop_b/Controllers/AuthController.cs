@@ -1,12 +1,13 @@
 ﻿using chainshop_b.Model.Dto.Request;
-using chainshop_b.Model.Dto.Response;
 using chainshop_b.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace chainshop_b.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AuthController : ControllerBase
     {
         private readonly AuthService _authService;
@@ -16,6 +17,7 @@ namespace chainshop_b.Controllers
             _authService = authService;
         }
 
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterRequest req)
         {
@@ -27,6 +29,7 @@ namespace chainshop_b.Controllers
             });
         }
 
+        [AllowAnonymous]
         [HttpPost("wallet-login")]
         public async Task<IActionResult> WalletLogin([FromBody] string walletID)
         {
@@ -36,19 +39,25 @@ namespace chainshop_b.Controllers
                 status = res.Status,
                 message = res.Message,
                 userId = res.userId,
+                token = res.token,
+                expiresAt = res.expiresAt
             });
         }
 
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest req)
         {
             var res = await _authService.Login(req);
 
-            return Ok(new ResultMessageResponse
+            return Ok(new
             {
-                Status = res.Status,
-                Message = res.Message,
-                idToken = res.idToken
+                status = res.Status,
+                message = res.Message,
+                idToken = res.userId,
+                userId = res.userId,
+                token = res.token,
+                expiresAt = res.expiresAt
             });
         }
 
@@ -64,7 +73,22 @@ namespace chainshop_b.Controllers
                 storeId = res.storeId,
                 storeName = res.storeName,
                 email = res.email,
-                walletAddress = res.walletAddress
+                walletAddress = res.walletAddress,
+                phone = res.phone,
+                city = res.city,
+                authMethod = res.authMethod,
+                lastLoginAt = res.lastLoginAt
+            });
+        }
+
+        [HttpPut("update-profile")]
+        public async Task<IActionResult> UpdateProfile([FromQuery] Guid userId, [FromBody] RegisterRequest req)
+        {
+            var res = await _authService.UpdateProfile(userId, req);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message
             });
         }
     }

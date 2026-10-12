@@ -268,5 +268,77 @@ namespace chainshop_b.Services
                 return new List<GetProductResponse>();
             }
         }
+
+        public async Task<ResultMessageResponse> UpdateProduct(Guid sellerId, Guid productId, FormItemsRequest req)
+        {
+            try
+            {
+                if (req.Stock < 0)
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "Stock cannot be negative"
+                    };
+                }
+
+                if (req.PriceIdr <= 0)
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "Price must be greater than 0"
+                    };
+                }
+
+                var product = await _context.TrProducts
+                    .Include(x => x.Seller)
+                    .FirstOrDefaultAsync(x => x.Id == productId && x.SellerId == sellerId);
+
+                if (product == null)
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "Product not found"
+                    };
+                }
+
+                var categoryExists = await _context.MsCategories.AnyAsync(x => x.Id == req.CategoryId);
+                if (!categoryExists)
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "Category not found"
+                    };
+                }
+
+                product.Name = req.Name;
+                product.CategoryId = req.CategoryId;
+                product.PriceIdr = req.PriceIdr;
+                product.Stock = req.Stock;
+                product.Description = req.Description;
+                product.Image = string.IsNullOrWhiteSpace(req.Image) ? product.Image : req.Image;
+                product.UpdatedAt = DateTime.UtcNow;
+                product.UpdatedBy = product.Seller!.UserId;
+
+                await _context.SaveChangesAsync();
+
+                return new ResultMessageResponse
+                {
+                    Status = true,
+                    Message = "Product updated successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResultMessageResponse
+                {
+                    Status = false,
+                    Message = $"Server error occurred while updating product"
+                };
+            }
+        }
     }
 }
