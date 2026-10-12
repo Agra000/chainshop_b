@@ -314,7 +314,7 @@ namespace chainshop_b.Services
                 };
             }
         }
-    
+
         public async Task<ResultMessageResponse> UpdateProfile(Guid userId, RegisterRequest req)
         {
             try
