@@ -9,17 +9,19 @@ namespace chainshop_b.Services
     public class ProductService
     {
         private readonly ApplicationDBContext _context;
+        private readonly StorageService _storageService;
 
-        public ProductService(ApplicationDBContext context)
+        public ProductService(ApplicationDBContext context, StorageService storageService)
         {
             _context = context;
+            _storageService = storageService;
         }
 
         public async Task<List<GetProductResponse>> GetAllProducts()
         {
             try
             {
-                return await _context.TrProducts.Select(x => new GetProductResponse
+                return await _context.TrProducts.Where(x => x.Status != "deleted").Select(x => new GetProductResponse
                 {
                     Id = x.Id,
                     Name = x.Name,
@@ -247,7 +249,7 @@ namespace chainshop_b.Services
             try
             {
                 return await _context.TrProducts
-                    .Where(x => x.SellerId == sellerId)
+                    .Where(x => x.SellerId == sellerId && x.Status != "deleted")
                     .OrderByDescending(x => x.UpdatedAt)
                     .Select(x => new GetProductResponse
                     {
@@ -319,11 +321,18 @@ namespace chainshop_b.Services
                 product.PriceIdr = req.PriceIdr;
                 product.Stock = req.Stock;
                 product.Description = req.Description;
+                var oldImage = product.Image;
                 product.Image = string.IsNullOrWhiteSpace(req.Image) ? product.Image : req.Image;
                 product.UpdatedAt = DateTime.UtcNow;
                 product.UpdatedBy = product.Seller!.UserId;
 
                 await _context.SaveChangesAsync();
+
+                // gambar diganti -> hapus file lama di storage
+                if (oldImage != product.Image)
+                {
+                    await _storageService.DeleteImageQuietly(product.Seller.UserId, oldImage);
+                }
 
                 return new ResultMessageResponse
                 {
@@ -337,6 +346,64 @@ namespace chainshop_b.Services
                 {
                     Status = false,
                     Message = $"Server error occurred while updating product"
+                };
+            }
+        }
+
+        public async Task<ResultMessageResponse> DeleteProduct(Guid sellerId, Guid productId)
+        {
+            try
+            {
+                var product = await _context.TrProducts
+                    .Include(x => x.Seller)
+                    .FirstOrDefaultAsync(x => x.Id == productId && x.SellerId == sellerId && x.Status != "deleted");
+
+                if (product == null)
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "Product not found"
+                    };
+                }
+
+                // produk masih dipakai di keranjang orang lain -> ikut dihapus dari keranjang
+                _context.TrCartItems.RemoveRange(_context.TrCartItems.Where(x => x.ProductId == productId));
+
+                var hasOrder = await _context.TrOrderItems.AnyAsync(x => x.ProductId == productId);
+                if (hasOrder)
+                {
+                    // sudah pernah dibeli -> soft delete, gambar tetap disimpan untuk riwayat order
+                    product.Status = "deleted";
+                    product.Stock = 0;
+                    product.UpdatedAt = DateTime.UtcNow;
+                    product.UpdatedBy = product.Seller!.UserId;
+                    await _context.SaveChangesAsync();
+                }
+                else
+                {
+                    var image = product.Image;
+                    var ownerId = product.Seller!.UserId;
+
+                    _context.LtProductSpecifications.RemoveRange(_context.LtProductSpecifications.Where(x => x.ProductId == productId));
+                    _context.TrProducts.Remove(product);
+                    await _context.SaveChangesAsync();
+
+                    await _storageService.DeleteImageQuietly(ownerId, image);
+                }
+
+                return new ResultMessageResponse
+                {
+                    Status = true,
+                    Message = "Product deleted successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResultMessageResponse
+                {
+                    Status = false,
+                    Message = $"Server error occurred while deleting product"
                 };
             }
         }

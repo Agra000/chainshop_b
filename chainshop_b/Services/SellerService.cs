@@ -9,10 +9,12 @@ namespace chainshop_b.Services
     public class SellerService
     {
         private readonly ApplicationDBContext _context;
+        private readonly StorageService _storageService;
 
-        public SellerService(ApplicationDBContext context)
+        public SellerService(ApplicationDBContext context, StorageService storageService)
         {
             _context = context;
+            _storageService = storageService;
         }
 
         public async Task<ResultMessageResponse> BecomeSeller(Guid userId, BecomeSellerRequest req)
@@ -148,7 +150,7 @@ namespace chainshop_b.Services
                 var shippingStatus = new[] { "shipped", "in_transit", "delivered" };
 
                 var products = await _context.TrProducts
-                    .Where(x => x.SellerId == sellerId)
+                    .Where(x => x.SellerId == sellerId && x.Status != "deleted")
                     .OrderByDescending(x => x.UpdatedAt)
                     .Select(x => new GetProductResponse
                     {
@@ -220,12 +222,20 @@ namespace chainshop_b.Services
                 }
 
                 var productIds = await _context.TrProducts.Where(x => x.SellerId == sellerId).Select(x => x.Id).ToListAsync();
+                var images = await _context.TrProducts.Where(x => x.SellerId == sellerId).Select(x => x.Image).ToListAsync();
+                images.Add(seller.Image);
                 _context.TrCartItems.RemoveRange(_context.TrCartItems.Where(x => productIds.Contains(x.ProductId)));
                 _context.LtProductSpecifications.RemoveRange(_context.LtProductSpecifications.Where(x => productIds.Contains(x.ProductId)));
                 _context.TrProducts.RemoveRange(_context.TrProducts.Where(x => x.SellerId == sellerId));
                 _context.MsSellers.Remove(seller);
 
                 await _context.SaveChangesAsync();
+
+                // hapus foto toko & produk di storage
+                foreach (var image in images)
+                {
+                    await _storageService.DeleteImageQuietly(seller.UserId, image);
+                }
 
                 return new ResultMessageResponse
                 {
@@ -239,6 +249,65 @@ namespace chainshop_b.Services
                 {
                     Status = false,
                     Message = $"Server error occurred while deleting store"
+                };
+            }
+        }
+
+        public async Task<ResultMessageResponse> UpdateShop(Guid sellerId, BecomeSellerRequest req)
+        {
+            try
+            {
+                var seller = await _context.MsSellers.FirstOrDefaultAsync(x => x.Id == sellerId);
+                if (seller == null)
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "Seller not found"
+                    };
+                }
+
+                if (string.IsNullOrWhiteSpace(req.ShopName))
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "Shop name is required"
+                    };
+                }
+
+                var oldImage = seller.Image;
+
+                seller.ShopName = req.ShopName.Trim();
+                // Image null = tidak diubah, "" = foto toko dihapus
+                if (req.Image != null)
+                {
+                    seller.Image = req.Image;
+                }
+                seller.ShopDescription = req.ShopDescription ?? string.Empty;
+                seller.City = req.City ?? string.Empty;
+                seller.UpdatedAt = DateTime.UtcNow;
+                seller.UpdatedBy = seller.UserId;
+
+                await _context.SaveChangesAsync();
+
+                if (oldImage != seller.Image)
+                {
+                    await _storageService.DeleteImageQuietly(seller.UserId, oldImage);
+                }
+
+                return new ResultMessageResponse
+                {
+                    Status = true,
+                    Message = "Shop updated successfully"
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ResultMessageResponse
+                {
+                    Status = false,
+                    Message = $"Server error occurred while updating shop"
                 };
             }
         }

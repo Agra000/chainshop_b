@@ -61,7 +61,7 @@ namespace chainshop_b.Services
                 var stockAvailable = await _context.TrProducts.Where(x => x.Id == productId).FirstOrDefaultAsync();
                 if (stockAvailable != null)
                 {
-                    if (stockAvailable.Stock < 1)
+                    if (stockAvailable.Status != "active" || stockAvailable.Stock < 1)
                     {
                         return new ResultMessageResponse
                         {

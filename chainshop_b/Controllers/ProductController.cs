@@ -94,6 +94,17 @@ namespace chainshop_b.Controllers
             });
         }
 
+        [HttpDelete("delete")]
+        public async Task<IActionResult> DeleteProduct([FromQuery] Guid sellerId, [FromQuery] Guid productId)
+        {
+            var res = await _productService.DeleteProduct(sellerId, productId);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message
+            });
+        }
+
         //[HttpGet("get-edit")]
         //public async Task<IActionResult> GetEdit([FromQuery] Guid taskId)
         //{

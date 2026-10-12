@@ -30,5 +30,33 @@ namespace chainshop_b.Controllers
                 path = res.path
             });
         }
+
+        // ganti gambar: upload file baru lalu hapus file lama (oldUrl)
+        [HttpPut("image")]
+        [RequestSizeLimit(6 * 1024 * 1024)]
+        public async Task<IActionResult> ReplaceImage([FromQuery] Guid userId, [FromQuery] string folder, [FromQuery] string? oldUrl, IFormFile file)
+        {
+            var res = await _storageService.ReplaceImage(userId, folder, file, oldUrl);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message,
+                url = res.url,
+                path = res.path
+            });
+        }
+
+        // hapus gambar milik user (url publik atau path di bucket)
+        [HttpDelete("image")]
+        public async Task<IActionResult> DeleteImage([FromQuery] Guid userId, [FromQuery] string url)
+        {
+            var res = await _storageService.DeleteImage(userId, url);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message,
+                path = res.path
+            });
+        }
     }
 }

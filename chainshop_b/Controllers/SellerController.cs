@@ -68,6 +68,17 @@ namespace chainshop_b.Controllers
                 products = res.products
             });
         }
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateShop([FromQuery] Guid sellerId, [FromBody] BecomeSellerRequest req)
+        {
+            var res = await _sellerService.UpdateShop(sellerId, req);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message
+            });
+        }
+
         [HttpDelete("delete")]
         public async Task<IActionResult> DeleteStore([FromQuery] Guid sellerId)
         {
