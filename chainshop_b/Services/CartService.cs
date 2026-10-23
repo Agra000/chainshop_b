@@ -59,9 +59,10 @@ namespace chainshop_b.Services
                 }
 
                 var stockAvailable = await _context.TrProducts.Where(x => x.Id == productId).FirstOrDefaultAsync();
+                var isAlreadyInCart = await _context.TrCartItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == productId && x.Quantity > 0);
                 if (stockAvailable != null)
                 {
-                    if (stockAvailable.Status != "active" || stockAvailable.Stock < 1)
+                    if (stockAvailable.Status != "active" || stockAvailable.Stock < 1 || (isAlreadyInCart?.Quantity + 1) >= stockAvailable.Stock)
                     {
                         return new ResultMessageResponse
                         {
@@ -79,7 +80,15 @@ namespace chainshop_b.Services
                     };
                 }
 
-                var isAlreadyInCart = await _context.TrCartItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == productId && x.Quantity > 0);
+                if (stockAvailable.SellerId == userId)
+                {
+                    return new ResultMessageResponse
+                    {
+                        Status = false,
+                        Message = "You cannot add your own product to the cart"
+                    };
+                }
+
                 if (isAlreadyInCart != null)
                 {
                     isAlreadyInCart.Quantity += 1;
