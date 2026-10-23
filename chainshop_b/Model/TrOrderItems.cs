@@ -26,15 +26,17 @@ namespace chainshop_b.Model
         public string ProductNameSnapshot { get; set; } = null!;
 
         [Required]
-        [Column("product_price_snapshot")]
-        public long ProductPriceSnapshot { get; set; }
+        // di database bertipe float4 (real); di C# tetap double
+        [Column("product_price_snapshot", TypeName = "real")]
+        public double ProductPriceSnapshot { get; set; }
 
         [Required]
         [Column("quantity")]
         public int Quantity { get; set; }
 
         [Required]
-        [Column("line_total_idr")]
-        public long LineTotalIdr { get; set; }
+        // float (float8 / double precision) di database
+        [Column("line_total_idr", TypeName = "double precision")]
+        public double LineTotalIdr { get; set; }
     }
 }

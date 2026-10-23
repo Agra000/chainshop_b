@@ -38,7 +38,8 @@ namespace chainshop_b.Model
         public TrDrivers? Driver { get; set; }
 
         [Required]
-        [Column("total_idr")]
+        // float (float8 / double precision) di database
+        [Column("total_idr", TypeName = "double precision")]
         public double TotalIdr { get; set; }
 
         // pending_payment, paid, processing, shipped, in_transit, delivered, completed, cancelled

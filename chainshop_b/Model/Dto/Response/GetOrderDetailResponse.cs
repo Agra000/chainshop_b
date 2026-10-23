@@ -35,9 +35,9 @@
         public Guid productId { get; set; }
         public string productName { get; set; } = null!;
         public string? image { get; set; }
-        public long price { get; set; }
+        public double price { get; set; }
         public int qty { get; set; }
-        public long lineTotal { get; set; }
+        public double lineTotal { get; set; }
         public bool isReviewed { get; set; }
     }
 
