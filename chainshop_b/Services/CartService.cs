@@ -80,13 +80,18 @@ namespace chainshop_b.Services
                     };
                 }
 
-                if (stockAvailable.SellerId == userId)
+                Guid sellerId = await _context.MsSellers.Where(x => x.UserId == userId).Select(x => x.Id).FirstOrDefaultAsync();
+
+                if (sellerId != Guid.Empty)
                 {
-                    return new ResultMessageResponse
+                    if (stockAvailable.SellerId == sellerId)
                     {
-                        Status = false,
-                        Message = "You cannot add your own product to the cart"
-                    };
+                        return new ResultMessageResponse
+                        {
+                            Status = false,
+                            Message = "You cannot add your own product to the cart"
+                        };
+                    }
                 }
 
                 if (isAlreadyInCart != null)
