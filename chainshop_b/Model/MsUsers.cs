@@ -35,5 +35,8 @@ namespace chainshop_b.Model
 
         [Column("last_login_at")]
         public DateTime? LastLoginAt { get; set; }
+
+        [Column("joined_at")]
+        public DateTime? JoinedAt { get; set; }
     }
 }

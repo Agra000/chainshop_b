@@ -77,7 +77,8 @@ namespace chainshop_b.Controllers
                 phone = res.phone,
                 city = res.city,
                 authMethod = res.authMethod,
-                lastLoginAt = res.lastLoginAt
+                lastLoginAt = res.lastLoginAt,
+                joinedAt = res.joinedAt
             });
         }
 

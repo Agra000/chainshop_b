@@ -302,7 +302,8 @@ namespace chainshop_b.Services
                     phone = user.Phone,
                     city = user.City,
                     authMethod = user.AuthMethod,
-                    lastLoginAt = user.LastLoginAt == null ? null : user.LastLoginAt.Value.ToString("o")
+                    lastLoginAt = user.LastLoginAt == null ? null : user.LastLoginAt.Value.ToString("o"),
+                    joinedAt = user.JoinedAt == null ? null : user.JoinedAt.Value.ToString("o")
                 };
             }
             catch (Exception ex)

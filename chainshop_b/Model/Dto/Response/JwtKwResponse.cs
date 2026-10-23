@@ -14,6 +14,7 @@
         public string? city { get; set; }
         public string? authMethod { get; set; }
         public string? lastLoginAt { get; set; }
+        public string? joinedAt { get; set; }
         public string? token { get; set; }
         public string? expiresAt { get; set; }
     }
