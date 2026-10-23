@@ -62,7 +62,7 @@ namespace chainshop_b.Services
                 var isAlreadyInCart = await _context.TrCartItems.FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == productId && x.Quantity > 0);
                 if (stockAvailable != null)
                 {
-                    if (stockAvailable.Status != "active" || stockAvailable.Stock < 1 || (isAlreadyInCart?.Quantity + 1) >= stockAvailable.Stock)
+                    if (stockAvailable.Status != "active" || stockAvailable.Stock < 1 || (isAlreadyInCart?.Quantity + 1) > stockAvailable.Stock)
                     {
                         return new ResultMessageResponse
                         {

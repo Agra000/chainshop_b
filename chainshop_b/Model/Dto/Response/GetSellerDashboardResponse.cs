@@ -14,9 +14,9 @@
         public int completedOrders { get; set; }
         public int totalSold { get; set; }
         // uang yang masih ditahan di escrow (belum di-release)
-        public long escrowHeldIdr { get; set; }
+        public double escrowHeldIdr { get; set; }
         // uang yang sudah diterima seller (sudah di-release)
-        public long totalRevenueIdr { get; set; }
+        public double totalRevenueIdr { get; set; }
         public List<GetProductResponse> products { get; set; } = new();
     }
 }

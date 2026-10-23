@@ -205,7 +205,7 @@ namespace chainshop_b.Services
                         BuyerId = userId,
                         SellerId = group.Key,
                         AddressId = address.Id,
-                        TotalIdr = group.Sum(x => x.Product!.PriceIdr * x.Quantity),
+                        TotalIdr = req.TotalPrice,
                         Status = StatusPendingPayment,
                         PaymentMethod = string.IsNullOrWhiteSpace(req.PaymentMethod) ? "crypto" : req.PaymentMethod,
                         CreatedAt = DateTime.UtcNow,
@@ -252,7 +252,7 @@ namespace chainshop_b.Services
                 await _context.SaveChangesAsync();
                 await trx.CommitAsync();
 
-                result.grandTotal = result.orders.Sum(x => x.totalIdr);
+                result.grandTotal = req.TotalPrice;
                 return result;
             }
             catch (Exception ex)

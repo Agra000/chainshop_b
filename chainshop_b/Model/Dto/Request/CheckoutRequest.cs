@@ -4,5 +4,6 @@
     {
         public Guid AddressId { get; set; }
         public string PaymentMethod { get; set; } = "crypto";
+        public double TotalPrice { get; set; }
     }
 }

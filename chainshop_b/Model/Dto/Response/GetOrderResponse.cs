@@ -5,7 +5,7 @@
         public Guid Id { get; set; }
         public string orderCode { get; set; } = null!;
         public string status { get; set; } = null!;
-        public long totalIdr { get; set; }
+        public double totalIdr { get; set; }
         public string paymentMethod { get; set; } = null!;
         public string? buyerName { get; set; }
         public string? shopName { get; set; }

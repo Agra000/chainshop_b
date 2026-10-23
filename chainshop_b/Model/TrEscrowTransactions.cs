@@ -21,7 +21,7 @@ namespace chainshop_b.Model
 
         [Required]
         [Column("amount_idr")]
-        public long AmountIdr { get; set; }
+        public double AmountIdr { get; set; }
 
         [Required]
         [Column("tx_hash")]

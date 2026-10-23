@@ -7,7 +7,7 @@
         public Guid? orderId { get; set; }
         public string? orderCode { get; set; }
         public string? orderStatus { get; set; }
-        public long totalIdr { get; set; }
+        public double totalIdr { get; set; }
         public string? paymentMethod { get; set; }
         public string? buyerName { get; set; }
         public string? buyerWallet { get; set; }
@@ -52,7 +52,7 @@
     public class GetEscrowTxResponse
     {
         public string txType { get; set; } = null!;
-        public long amountIdr { get; set; }
+        public double amountIdr { get; set; }
         public string txHash { get; set; } = null!;
         public string? fromWallet { get; set; }
         public string? toWallet { get; set; }

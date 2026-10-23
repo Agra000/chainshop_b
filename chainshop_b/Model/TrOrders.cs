@@ -39,7 +39,7 @@ namespace chainshop_b.Model
 
         [Required]
         [Column("total_idr")]
-        public long TotalIdr { get; set; }
+        public double TotalIdr { get; set; }
 
         // pending_payment, paid, processing, shipped, in_transit, delivered, completed, cancelled
         [Required]
