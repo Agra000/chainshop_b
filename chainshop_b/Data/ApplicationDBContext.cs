@@ -23,5 +23,6 @@ namespace chainshop_b.Data
         public DbSet<TrEscrowTransactions> TrEscrowTransactions { get; set; }
         public DbSet<TrOrderTrackings> TrOrderTrackings { get; set; }
         public DbSet<TrProductReviews> TrProductReviews { get; set; }
+        public DbSet<TrRefundRequests> TrRefundRequests { get; set; }
     }
 }

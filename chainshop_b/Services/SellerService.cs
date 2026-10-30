@@ -146,7 +146,8 @@ namespace chainshop_b.Services
                 }
 
                 var orders = _context.TrOrders.Where(x => x.SellerId == sellerId && x.Status != "pending_payment");
-                var heldStatus = new[] { "paid", "processing", "shipped", "in_transit", "delivered" };
+                var heldStatus = new[] { "paid", "processing", "shipped", "in_transit", "delivered",
+                    "refund_requested", "return_pending", "return_shipped", "return_delivered", "accepted" };
                 var shippingStatus = new[] { "shipped", "in_transit", "delivered" };
 
                 var products = await _context.TrProducts

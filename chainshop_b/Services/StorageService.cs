@@ -21,7 +21,7 @@ namespace chainshop_b.Services
         };
 
         // folder yang boleh dipakai di dalam bucket
-        private static readonly string[] AllowedFolders = { "products", "shops", "avatars" };
+        private static readonly string[] AllowedFolders = { "products", "shops", "avatars", "refunds" };
 
         public StorageService(HttpClient http, IConfiguration config)
         {

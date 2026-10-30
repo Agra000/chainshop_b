@@ -16,7 +16,7 @@ namespace chainshop_b.Controllers
             _storageService = storageService;
         }
 
-        // multipart/form-data, field "file". folder: products | shops | avatars
+        // multipart/form-data, field "file". folder: products | shops | avatars | refunds
         [HttpPost("image")]
         [RequestSizeLimit(6 * 1024 * 1024)]
         public async Task<IActionResult> UploadImage([FromQuery] Guid userId, [FromQuery] string folder, IFormFile file)

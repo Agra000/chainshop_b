@@ -34,6 +34,7 @@ namespace chainshop_b.Services
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim("fullname", user.Name),
                 new Claim("auth_method", user.AuthMethod),
+                new Claim("role", user.Role ?? "user"),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -302,6 +303,7 @@ namespace chainshop_b.Services
                     phone = user.Phone,
                     city = user.City,
                     authMethod = user.AuthMethod,
+                    role = user.Role,
                     lastLoginAt = user.LastLoginAt == null ? null : user.LastLoginAt.Value.ToString("o"),
                     joinedAt = user.JoinedAt == null ? null : user.JoinedAt.Value.ToString("o")
                 };
