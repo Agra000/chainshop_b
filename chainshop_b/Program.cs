@@ -1,3 +1,4 @@
+﻿using chainshop_b.Blockchain;
 using chainshop_b.Data;
 using chainshop_b.Filters;
 using chainshop_b.Services;
@@ -50,6 +51,15 @@ builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<CourierService>();
 builder.Services.AddHttpClient<StorageService>();
+
+// Blockchain (Sepolia): smart contract escrow mUSDT + cron auto* (lihat section "Blockchain" di appsettings)
+builder.Services.Configure<BlockchainOptions>(builder.Configuration.GetSection("Blockchain"));
+builder.Services.AddSingleton<BlockchainService>();
+builder.Services.AddScoped<EscrowSyncService>();
+builder.Services.AddScoped<RefundService>();
+builder.Services.AddScoped<EscrowAutomationRunner>();
+builder.Services.AddScoped<AdminAccessFilter>();
+builder.Services.AddHostedService<EscrowAutomationService>();
 
 //builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
