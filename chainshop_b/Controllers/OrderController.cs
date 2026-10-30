@@ -11,13 +11,31 @@ namespace chainshop_b.Controllers
     public class OrderController : ControllerBase
     {
         private readonly OrderService _orderService;
+        private readonly EscrowAutomationRunner _automation;
 
-        public OrderController(OrderService orderService)
+        public OrderController(OrderService orderService, EscrowAutomationRunner automation)
         {
             _orderService = orderService;
+            _automation = automation;
         }
 
         // ===== Buyer =====
+
+        // rincian per seller (harga barang, ongkir, estimasi gas ±) sebelum bayar
+        [HttpGet("checkout-preview")]
+        public async Task<IActionResult> GetCheckoutPreview([FromQuery] Guid userId)
+        {
+            var res = await _orderService.GetCheckoutPreview(userId);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message,
+                grandTotal = res.grandTotal,
+                totalGasFee = res.totalGasFee,
+                escrowAddress = res.escrowAddress,
+                data = res.groups
+            });
+        }
 
         [HttpPost("checkout")]
         public async Task<IActionResult> Checkout([FromQuery] Guid userId, [FromBody] CheckoutRequest req)
@@ -66,7 +84,7 @@ namespace chainshop_b.Controllers
         }
 
         [HttpPost("confirm-delivery")]
-        public async Task<IActionResult> ConfirmDelivery([FromQuery] Guid userId, [FromQuery] Guid orderId, [FromBody] EscrowTxRequest req)
+        public async Task<IActionResult> ConfirmDelivery([FromQuery] Guid userId, [FromQuery] Guid orderId, [FromBody] AcceptOrderRequest req)
         {
             var res = await _orderService.ConfirmDelivery(userId, orderId, req);
             return Ok(new
@@ -124,17 +142,16 @@ namespace chainshop_b.Controllers
             });
         }
 
-        [HttpGet("shipping-invoice")]
-        public async Task<IActionResult> GetShippingInvoice([FromQuery] Guid sellerId, [FromQuery] Guid orderId, [FromQuery] Guid driverId, [FromQuery] string trackingNumber)
+        // generate nomor resi + invoice id, kembalikan data invoice untuk markShipped onchain
+        [HttpPost("prepare-shipment")]
+        public async Task<IActionResult> PrepareShipment([FromQuery] Guid sellerId, [FromQuery] Guid orderId, [FromBody] PrepareShipmentRequest req)
         {
-            var res = await _orderService.GetShippingInvoice(sellerId, orderId, driverId, trackingNumber);
+            var res = await _orderService.PrepareShipment(sellerId, orderId, req);
             return Ok(new
             {
                 status = res.Status,
                 message = res.Message,
-                orderCode = res.orderCode,
-                invoicePayload = res.invoicePayload,
-                invoiceHash = res.invoiceHash
+                data = res.Status ? res : null
             });
         }
 
@@ -142,6 +159,18 @@ namespace chainshop_b.Controllers
         public async Task<IActionResult> ShipOrder([FromQuery] Guid sellerId, [FromQuery] Guid orderId, [FromBody] ShipOrderRequest req)
         {
             var res = await _orderService.ShipOrder(sellerId, orderId, req);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message
+            });
+        }
+
+        // v3: seller klaim dana (releaseWithAcceptance dari wallet seller) setelah buyer menandatangani persetujuan
+        [HttpPost("claim-payment")]
+        public async Task<IActionResult> ClaimPayment([FromQuery] Guid sellerId, [FromQuery] Guid orderId, [FromBody] ClaimPaymentRequest req)
+        {
+            var res = await _orderService.ClaimPayment(sellerId, orderId, req);
             return Ok(new
             {
                 status = res.Status,
@@ -160,6 +189,58 @@ namespace chainshop_b.Controllers
             });
         }
 
+        // ===== Buyer / Seller / Admin =====
+
+        // sinkronkan status order dengan smart contract setelah aksi onchain
+        // (markDelivered, retur, confirmReturnReceived, auto*). txHash opsional.
+        [HttpPost("sync")]
+        public async Task<IActionResult> SyncOrder([FromQuery] Guid orderId, [FromBody] SyncOrderRequest? req)
+        {
+            var claim = User.FindFirst("iduser")?.Value;
+            if (!Guid.TryParse(claim, out var loginUserId))
+            {
+                return Unauthorized(new { status = false, message = "Session expired, please login again" });
+            }
+
+            var res = await _orderService.SyncOrder(loginUserId, orderId, req?.TxHash);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message
+            });
+        }
+
+        // jalankan aksi otomatis yang sudah jatuh tempo sekarang juga (tombol "... now"), gas dibayar wallet operator
+        [HttpPost("run-auto")]
+        public async Task<IActionResult> RunAuto([FromQuery] Guid orderId)
+        {
+            var claim = User.FindFirst("iduser")?.Value;
+            if (!Guid.TryParse(claim, out var loginUserId))
+            {
+                return Unauthorized(new { status = false, message = "Session expired, please login again" });
+            }
+
+            if (!await _orderService.CanAccessOrder(loginUserId, orderId))
+            {
+                return Ok(new { status = false, message = "Order not found" });
+            }
+
+            (bool ok, string message) res;
+            try
+            {
+                res = await _automation.Run(orderId);
+            }
+            catch (Exception)
+            {
+                res = (false, "Could not reach the blockchain right now, please try again");
+            }
+            return Ok(new
+            {
+                status = res.ok,
+                message = res.message
+            });
+        }
+
         // ===== Public =====
 
         [AllowAnonymous]
@@ -175,6 +256,7 @@ namespace chainshop_b.Controllers
                 invoicePayload = res.invoicePayload,
                 invoiceHash = res.invoiceHash,
                 invoiceTxHash = res.invoiceTxHash,
+                invoiceTxUrl = res.invoiceTxUrl,
                 isMatch = res.isMatch
             });
         }

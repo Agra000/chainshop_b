@@ -11,5 +11,6 @@
         public string? invoiceHash { get; set; }
         public string? invoiceTxHash { get; set; }
         public bool? isMatch { get; set; }
+        public string? invoiceTxUrl { get; set; }
     }
 }

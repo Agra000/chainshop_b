@@ -38,5 +38,11 @@ namespace chainshop_b.Model
 
         [Column("joined_at")]
         public DateTime? JoinedAt { get; set; }
+
+        // "user" | "admin" (admin = arbiter refund). Diubah manual lewat database.
+        [Required]
+        [MaxLength(20)]
+        [Column("role")]
+        public string Role { get; set; } = "user";
     }
 }

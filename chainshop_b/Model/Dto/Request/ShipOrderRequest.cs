@@ -1,9 +1,8 @@
-﻿namespace chainshop_b.Model.Dto.Request
+namespace chainshop_b.Model.Dto.Request
 {
+    // dikirim setelah seller memanggil markShipped (invoice tercatat onchain)
     public class ShipOrderRequest
     {
-        public Guid DriverId { get; set; }
-        public string TrackingNumber { get; set; } = null!;
         public string InvoiceTxHash { get; set; } = null!;
     }
 }

@@ -13,5 +13,6 @@
         public string? firstItemImage { get; set; }
         public string? trackingNumber { get; set; }
         public string createdAt { get; set; } = null!;
+        public int refundCount { get; set; }
     }
 }

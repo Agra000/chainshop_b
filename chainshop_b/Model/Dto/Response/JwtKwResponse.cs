@@ -13,6 +13,8 @@
         public string? phone { get; set; }
         public string? city { get; set; }
         public string? authMethod { get; set; }
+        // "user" | "admin"
+        public string? role { get; set; }
         public string? lastLoginAt { get; set; }
         public string? joinedAt { get; set; }
         public string? token { get; set; }

@@ -27,6 +27,30 @@
         public List<GetOrderItemResponse> items { get; set; } = new();
         public List<GetOrderTrackingResponse> trackings { get; set; } = new();
         public List<GetEscrowTxResponse> escrowTransactions { get; set; } = new();
+
+        // ===== escrow onchain =====
+        public string? onchainOrderId { get; set; }
+        public string? escrowAddress { get; set; }
+        public string? explorerUrl { get; set; }
+        public string? invoiceId { get; set; }
+        public string? courierName { get; set; }
+        public double itemsTotal { get; set; }
+        public double shippingFee { get; set; }
+        public double gasFeeEstimate { get; set; }
+        public int itemCount { get; set; }
+        public string? sellerDeadlineAt { get; set; }
+        public string? buyerDeadlineAt { get; set; }
+        public string? returnDeadlineAt { get; set; }
+        // kapan buyer boleh refund jika barang tidak kunjung sampai
+        public string? notDeliveredRefundAt { get; set; }
+        public int refundCount { get; set; }
+        public int maxRefundRequests { get; set; } = 3;
+        public string? statusBeforeRefund { get; set; }
+        public string? returnTrackingNumber { get; set; }
+        // v3: tanda tangan persetujuan buyer (dipakai seller untuk klaim dana onchain)
+        public string? buyerAcceptSignature { get; set; }
+        public string? acceptedAt { get; set; }
+        public List<GetRefundResponse> refunds { get; set; } = new();
     }
 
     public class GetOrderItemResponse
