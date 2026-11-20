@@ -46,6 +46,23 @@ namespace chainshop_b.Controllers
             });
         }
 
+        // jumlah order yang butuh perhatian seller, untuk badge notifikasi (dipanggil berkala oleh frontend)
+        [HttpGet("order-notifications")]
+        public async Task<IActionResult> GetOrderNotifications([FromQuery] Guid sellerId)
+        {
+            var res = await _sellerService.GetOrderNotifications(sellerId);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message,
+                newOrders = res.newOrders,
+                refundRequested = res.refundRequested,
+                returnArrived = res.returnArrived,
+                readyToClaim = res.readyToClaim,
+                total = res.total
+            });
+        }
+
         [HttpGet("dashboard")]
         public async Task<IActionResult> GetSellerDashboard([FromQuery] Guid sellerId)
         {

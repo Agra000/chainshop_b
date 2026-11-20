@@ -131,6 +131,42 @@ namespace chainshop_b.Services
             }
         }
 
+        // status order yang dihitung sebagai notifikasi seller (urutan sama dengan field response)
+        public static readonly string[] NotificationStatuses = { "paid", "refund_requested", "return_delivered", "accepted" };
+
+        public async Task<GetSellerOrderNotificationResponse> GetOrderNotifications(Guid sellerId)
+        {
+            try
+            {
+                var counts = await _context.TrOrders
+                    .Where(x => x.SellerId == sellerId && NotificationStatuses.Contains(x.Status))
+                    .GroupBy(x => x.Status)
+                    .Select(g => new { Status = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.Status, x => x.Count);
+
+                int Get(string status) => counts.TryGetValue(status, out var c) ? c : 0;
+
+                return new GetSellerOrderNotificationResponse
+                {
+                    Status = true,
+                    Message = "Success",
+                    newOrders = Get("paid"),
+                    refundRequested = Get("refund_requested"),
+                    returnArrived = Get("return_delivered"),
+                    readyToClaim = Get("accepted"),
+                    total = counts.Values.Sum()
+                };
+            }
+            catch (Exception ex)
+            {
+                return new GetSellerOrderNotificationResponse
+                {
+                    Status = false,
+                    Message = "Server error occurred while getting order notifications"
+                };
+            }
+        }
+
         public async Task<GetSellerDashboardResponse> GetSellerDashboard(Guid sellerId)
         {
             try
