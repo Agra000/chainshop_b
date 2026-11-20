@@ -51,6 +51,8 @@
         public string? buyerAcceptSignature { get; set; }
         public string? acceptedAt { get; set; }
         public List<GetRefundResponse> refunds { get; set; } = new();
+        // order completed + dana escrow sudah dilepas ke seller -> buyer boleh memberi rating
+        public bool isReviewable { get; set; }
     }
 
     public class GetOrderItemResponse

@@ -14,5 +14,9 @@
         public string? trackingNumber { get; set; }
         public string createdAt { get; set; } = null!;
         public int refundCount { get; set; }
+        // order completed + dana escrow sudah dilepas ke seller -> buyer boleh memberi rating
+        public bool isReviewable { get; set; }
+        // jumlah baris barang yang belum diberi rating
+        public int unreviewedCount { get; set; }
     }
 }

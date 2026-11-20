@@ -437,7 +437,12 @@ namespace chainshop_b.Services
                     firstItemImage = _context.TrOrderItems.Where(i => i.OrderId == x.Id && i.Product != null).Select(i => i.Product!.Image).FirstOrDefault(),
                     trackingNumber = x.TrackingNumber,
                     createdAt = x.CreatedAt.ToString("yyyy-MM-dd HH:mm:ss"),
-                    refundCount = x.RefundCount
+                    refundCount = x.RefundCount,
+                    // syarat rating sama dengan ReviewService.IsOrderReviewable
+                    isReviewable = x.Status == EscrowSyncService.StatusCompleted &&
+                                   _context.TrEscrowTransactions.Any(e => e.OrderId == x.Id && e.TxType == "release"),
+                    unreviewedCount = _context.TrOrderItems.Count(i => i.OrderId == x.Id &&
+                                   !_context.TrProductReviews.Any(r => r.OrderItemId == i.Id))
                 });
         }
 
@@ -645,7 +650,9 @@ namespace chainshop_b.Services
                     returnTrackingNumber = order.ReturnTrackingNumber,
                     buyerAcceptSignature = order.BuyerAcceptSignature,
                     acceptedAt = FormatDate(order.AcceptedAt),
-                    refunds = refunds
+                    refunds = refunds,
+                    // syarat rating sama dengan ReviewService.IsOrderReviewable
+                    isReviewable = order.Status == EscrowSyncService.StatusCompleted && escrows.Any(e => e.txType == "release")
                 };
             }
             catch (Exception ex)

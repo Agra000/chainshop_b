@@ -28,6 +28,18 @@ namespace chainshop_b.Controllers
             });
         }
 
+        // rating beberapa barang dalam satu order (halaman Order History)
+        [HttpPost("add-order")]
+        public async Task<IActionResult> AddOrderReviews([FromQuery] Guid userId, [FromBody] OrderReviewRequest req)
+        {
+            var res = await _reviewService.AddOrderReviews(userId, req);
+            return Ok(new
+            {
+                status = res.Status,
+                message = res.Message
+            });
+        }
+
         [AllowAnonymous]
         [HttpGet("get-by-product")]
         public async Task<IActionResult> GetProductReviews([FromQuery] Guid productId)
